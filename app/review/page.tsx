@@ -1,0 +1,217 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import Navbar from '@/components/Navbar'
+import PRCard, { PullRequest } from '@/components/PRCard'
+
+type ActionResult = {
+  prNumber: number
+  action: 'approve' | 'merge' | 'changes'
+  message: string
+  success: boolean
+}
+
+export default function ReviewPage() {
+  const [prs, setPrs] = useState<PullRequest[]>([])
+  const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [result, setResult] = useState<ActionResult | null>(null)
+  const [expandedDiff, setExpandedDiff] = useState<number | null>(null)
+
+  const fetchPRs = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/prs')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Błąd pobierania PR-ów')
+      setPrs(data.prs || [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nieznany błąd')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchPRs()
+  }, [])
+
+  // Merge PR
+  const handleMerge = async (prNumber: number) => {
+    if (!confirm(`Merge PR #${prNumber}? Ta operacja jest nieodwracalna.`)) return
+    setActionLoading(true)
+    setResult(null)
+    try {
+      const res = await fetch('/api/merge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prNumber, mergeMethod: 'squash' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Błąd merge')
+      setResult({
+        prNumber,
+        action: 'merge',
+        message: 'Merge zakończony sukcesem ✅',
+        success: true,
+      })
+      // Odśwież listę
+      await fetchPRs()
+    } catch (err) {
+      setResult({
+        prNumber,
+        action: 'merge',
+        message: err instanceof Error ? err.message : 'Błąd merge',
+        success: false,
+      })
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // Approve PR przez server-side API route (używa GITHUB_TOKEN)
+  const handleApprove = async (prNumber: number) => {
+    setActionLoading(true)
+    setResult(null)
+    try {
+      const res = await fetch('/api/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prNumber, event: 'APPROVE' }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Błąd zatwierdzania')
+      setResult({
+        prNumber,
+        action: 'approve',
+        message: `PR #${prNumber} zatwierdzony ✅`,
+        success: true,
+      })
+    } catch (err) {
+      setResult({
+        prNumber,
+        action: 'approve',
+        message: err instanceof Error ? err.message : 'Błąd zatwierdzania',
+        success: false,
+      })
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // Request Changes
+  const handleRequestChanges = async (prNumber: number) => {
+    const pr = prs.find((p) => p.number === prNumber)
+    if (pr) {
+      window.open(pr.html_url, '_blank')
+    }
+    setResult({
+      prNumber,
+      action: 'changes',
+      message: 'Otwarto PR w GitHub — dodaj komentarz z żądaniem zmian',
+      success: true,
+    })
+  }
+
+  // Podgląd diff — otwiera GitHub Files view w nowej karcie
+  const toggleDiff = (prNumber: number, htmlUrl: string) => {
+    if (expandedDiff === prNumber) {
+      setExpandedDiff(null)
+      return
+    }
+    try {
+      window.open(`${htmlUrl}/files`, '_blank')
+    } catch (err) {
+      console.error('Nie można otworzyć diff:', err)
+    }
+    setExpandedDiff(prNumber)
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-900 pb-24">
+      {/* Nagłówek */}
+      <header className="bg-gray-800 border-b border-gray-700 px-4">
+        <div className="max-w-2xl mx-auto py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-white">🔍 PR Review</h1>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Przeglądaj i merguj pull requesty
+            </p>
+          </div>
+          <button
+            onClick={fetchPRs}
+            className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
+          >
+            🔄
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-2xl mx-auto px-4 py-5 flex flex-col gap-4">
+        {/* Wynik akcji */}
+        {result && (
+          <div
+            className={`rounded-2xl px-4 py-3 text-sm ${
+              result.success
+                ? 'bg-green-900/40 border border-green-700 text-green-300'
+                : 'bg-yellow-900/40 border border-yellow-700 text-yellow-300'
+            }`}
+          >
+            {result.success ? '✅' : '⚠️'} {result.message}
+          </div>
+        )}
+
+        {/* Lista PR-ów */}
+        {loading ? (
+          <div className="flex flex-col gap-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-gray-800 rounded-2xl h-32 animate-pulse border border-gray-700"
+              />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="bg-red-900/30 border border-red-800 rounded-2xl px-4 py-5 text-center">
+            <p className="text-red-400 text-sm mb-3">❌ {error}</p>
+            <button
+              onClick={fetchPRs}
+              className="text-sm text-red-300 hover:text-red-200 underline"
+            >
+              Spróbuj ponownie
+            </button>
+          </div>
+        ) : prs.length === 0 ? (
+          <div className="bg-gray-800 border border-gray-700 rounded-2xl px-4 py-8 text-center">
+            <p className="text-gray-500 text-sm">✅ Brak otwartych PR-ów do review</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {prs.map((pr) => (
+              <div key={pr.id} className="flex flex-col gap-2">
+                <PRCard
+                  pr={pr}
+                  onApprove={handleApprove}
+                  onRequestChanges={handleRequestChanges}
+                  onMerge={handleMerge}
+                  loading={actionLoading}
+                />
+                {/* Przycisk do podglądu diff */}
+                <button
+                  onClick={() => toggleDiff(pr.number, pr.html_url)}
+                  className="text-xs text-gray-500 hover:text-gray-300 text-left px-2 transition-colors"
+                >
+                  📄 Podgląd diff (otwiera w GitHub) →
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+
+      <Navbar />
+    </div>
+  )
+}

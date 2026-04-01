@@ -1,0 +1,141 @@
+'use client'
+
+import { useState } from 'react'
+
+const AGENTS = [
+  { id: 'copilot', label: 'GitHub Copilot', emoji: '🟣', login: 'copilot' },
+  { id: 'claude', label: 'Claude (Anthropic)', emoji: '🟠', login: 'claude-ai' },
+  { id: 'codex', label: 'Codex (OpenAI)', emoji: '🔵', login: 'codex-ai' },
+]
+
+interface Task {
+  id: string
+  agent: string
+  description: string
+  issueUrl?: string
+  createdAt: string
+}
+
+interface TaskFormProps {
+  onSubmit?: (task: Task) => void
+}
+
+export default function TaskForm({ onSubmit }: TaskFormProps) {
+  const [selectedAgent, setSelectedAgent] = useState(AGENTS[0].id)
+  const [description, setDescription] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!description.trim()) return
+
+    setLoading(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const res = await fetch('/api/task', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agent: selectedAgent, description }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Błąd tworzenia zadania')
+      }
+
+      const task: Task = {
+        id: String(data.issue?.number || Date.now()),
+        agent: selectedAgent,
+        description,
+        issueUrl: data.issue?.html_url,
+        createdAt: new Date().toISOString(),
+      }
+
+      setSuccess(
+        `Zadanie #${task.id} utworzone!${task.issueUrl ? ` → ${task.issueUrl}` : ''}`
+      )
+      setDescription('')
+      onSubmit?.(task)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nieznany błąd')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {/* Wybór agenta */}
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Wybierz agenta
+        </label>
+        <div className="flex flex-col gap-2">
+          {AGENTS.map((agent) => (
+            <button
+              key={agent.id}
+              type="button"
+              onClick={() => setSelectedAgent(agent.id)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left ${
+                selectedAgent === agent.id
+                  ? agent.id === 'copilot'
+                    ? 'bg-purple-600/20 border-purple-500 text-purple-300'
+                    : agent.id === 'claude'
+                    ? 'bg-orange-600/20 border-orange-400 text-orange-300'
+                    : 'bg-blue-600/20 border-blue-500 text-blue-300'
+                  : 'bg-gray-700/50 border-gray-600 text-gray-400 hover:border-gray-500'
+              }`}
+            >
+              <span className="text-xl">{agent.emoji}</span>
+              <span className="font-medium">{agent.label}</span>
+              {selectedAgent === agent.id && (
+                <span className="ml-auto text-xs opacity-70">✓</span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Opis zadania */}
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Opis zadania
+        </label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Opisz co agent ma zrobić..."
+          rows={4}
+          required
+          className="w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none text-sm"
+        />
+      </div>
+
+      {/* Komunikaty */}
+      {error && (
+        <div className="bg-red-900/40 border border-red-700 rounded-xl px-4 py-3 text-sm text-red-300">
+          ❌ {error}
+        </div>
+      )}
+      {success && (
+        <div className="bg-green-900/40 border border-green-700 rounded-xl px-4 py-3 text-sm text-green-300">
+          ✅ {success}
+        </div>
+      )}
+
+      {/* Przycisk */}
+      <button
+        type="submit"
+        disabled={loading || !description.trim()}
+        className="w-full py-3.5 bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base"
+      >
+        {loading ? '⏳ Tworzenie...' : '🚀 Zleć zadanie'}
+      </button>
+    </form>
+  )
+}
