@@ -1,0 +1,42 @@
+{
+  "name": "claude-remote-control",
+  "version": "1.0.0",
+  "description": "A web interface for remotely controlling and interacting with Claude AI",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@anthropic-ai/sdk": "^0.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marekdkropiewnicki-dotcom/claude-remote-control.git"
+  },
+  "keywords": [
+    "claude",
+    "ai",
+    "remote-control",
+    "anthropic"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/marekdkropiewnicki-dotcom/claude-remote-control/issues"
+  },
+  "homepage": "https://github.com/marekdkropiewnicki-dotcom/claude-remote-control#readme"
+}
