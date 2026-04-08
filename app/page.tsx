@@ -32,10 +32,14 @@ export default function Home() {
     }
   }, [])
 
+  const isValidApiKey = (key: string) => key.trim().startsWith('sk-ant-')
+
   const saveApiKey = () => {
-    if (apiKey.trim()) {
+    if (apiKey.trim() && isValidApiKey(apiKey)) {
       localStorage.setItem('anthropic_api_key', apiKey.trim())
       setIsConfigured(true)
+    } else {
+      alert('Nieprawidłowy klucz API. Klucz powinien zaczynać się od "sk-ant-".')
     }
   }
 
@@ -60,10 +64,10 @@ export default function Home() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-api-key': apiKey,
         },
         body: JSON.stringify({
           messages: [...messages, userMessage],
-          apiKey: apiKey,
         }),
       })
 
@@ -113,12 +117,12 @@ export default function Home() {
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="sk-ant-..."
               className={styles.apiKeyInput}
-              onKeyPress={(e) => e.key === 'Enter' && saveApiKey()}
+              onKeyDown={(e) => e.key === 'Enter' && saveApiKey()}
             />
             <button
               onClick={saveApiKey}
               className={styles.saveButton}
-              disabled={!apiKey.trim()}
+              disabled={!apiKey.trim() || !isValidApiKey(apiKey)}
             >
               Save API Key
             </button>

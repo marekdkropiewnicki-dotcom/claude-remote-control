@@ -3,11 +3,19 @@ import Anthropic from '@anthropic-ai/sdk'
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages, apiKey } = await request.json()
+    const { messages } = await request.json()
+    const apiKey = request.headers.get('x-api-key')
 
     if (!apiKey) {
       return NextResponse.json(
         { error: 'API key is required' },
+        { status: 400 }
+      )
+    }
+
+    if (!apiKey.startsWith('sk-ant-')) {
+      return NextResponse.json(
+        { error: 'Invalid API key format' },
         { status: 400 }
       )
     }
@@ -31,6 +39,13 @@ export async function POST(request: NextRequest) {
         content: msg.content,
       })),
     })
+
+    if (!response.content || response.content.length === 0) {
+      return NextResponse.json(
+        { error: 'Empty response from Claude' },
+        { status: 500 }
+      )
+    }
 
     const content = response.content[0]
     if (content.type === 'text') {
