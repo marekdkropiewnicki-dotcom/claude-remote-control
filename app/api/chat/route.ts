@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     })
 
     const response = await anthropic.messages.create({
-      model: claude-sonnet-4-6
+      model: 'claude-sonnet-4-6',
       max_tokens: 4096,
       messages: messages.map((msg: { role: string; content: string }) => ({
         role: msg.role as 'user' | 'assistant',
