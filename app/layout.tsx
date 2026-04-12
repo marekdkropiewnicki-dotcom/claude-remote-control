@@ -4,7 +4,6 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'GeNCorE — Command Center',
   description: 'Panel sterowania agentami AI: Copilot, Claude, Codex',
-  manifest: '/manifest.json',
 }
 
 export const viewport: Viewport = {
