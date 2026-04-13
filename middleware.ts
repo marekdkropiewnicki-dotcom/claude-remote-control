@@ -18,9 +18,16 @@ export function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // Jeśli ADMIN_TOKEN nie jest ustawiony — nie blokuj (dev mode)
+  // Jeśli ADMIN_TOKEN nie jest ustawiony, pozwól tylko poza production.
+  // W production zakończ żądanie błędem, aby nie ujawnić chronionych tras.
   if (!ADMIN_TOKEN) {
-    return NextResponse.next()
+    if (process.env.NODE_ENV !== 'production') {
+      return NextResponse.next()
+    }
+
+    return new NextResponse('Server misconfiguration: ADMIN_TOKEN is not set.', {
+      status: 500,
+    })
   }
 
   const authCookie = req.cookies.get('auth')?.value
