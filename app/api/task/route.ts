@@ -41,6 +41,15 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // Validate agent is a supported value
+  const supportedAgents = Object.keys(AGENT_LOGINS)
+  if (!supportedAgents.includes(agent)) {
+    return NextResponse.json(
+      { error: `Nieznany agent. Obsługiwane agenty: ${supportedAgents.join(', ')}` },
+      { status: 400 }
+    )
+  }
+
   const agentLogin = AGENT_LOGINS[agent]
   const agentLabel = AGENT_LABELS[agent]
 
