@@ -33,6 +33,9 @@ export function middleware(req: NextRequest) {
   const authCookie = req.cookies.get('auth')?.value
 
   if (authCookie !== ADMIN_TOKEN) {
+    if (pathname.startsWith('/api')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
