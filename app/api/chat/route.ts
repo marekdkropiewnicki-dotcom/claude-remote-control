@@ -38,11 +38,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate message roles
-    for (const msg of messages) {
+    // Validate message properties
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i]
+      
+      // Validate role
       if (msg.role !== 'user' && msg.role !== 'assistant') {
         return NextResponse.json(
           { error: `Invalid message role: ${msg.role}` },
+          { status: 400 }
+        )
+      }
+      
+      // Validate content exists and is a string
+      if (typeof msg.content !== 'string' || msg.content.length === 0) {
+        return NextResponse.json(
+          { error: `Message at index ${i} must have non-empty string content` },
           { status: 400 }
         )
       }
