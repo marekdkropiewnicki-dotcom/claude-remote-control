@@ -96,6 +96,10 @@ Otwórz [http://localhost:3000](http://localhost:3000).
 
 ## Bezpieczeństwo
 
-- Cały panel zabezpieczony `ADMIN_TOKEN` (cookie session, 7 dni)
-- `GITHUB_TOKEN` nigdy nie trafia do frontendu — używany tylko w API routes
+- Cały panel chroniony sesją cookie (7 dni); brak logowania = przekierowanie na `/login`
+- Cookie `auth` przechowuje `HMAC-SHA256(ADMIN_TOKEN, 'gencore:session:v1')` — surowy token **nigdy** nie trafia do cookie
+- Brak `ADMIN_TOKEN` w production kończy żądania błędem HTTP 500 zamiast otwierać panel publicznie
+- Niezalogowane żądania do `/api/*` zwracają JSON `{ error: 'Unauthorized' }` (HTTP 401) zamiast przekierowywać na HTML
+- `GITHUB_TOKEN` nigdy nie trafia do frontendu — używany wyłącznie w API routes (server-side)
+- Numer PR z wejścia użytkownika walidowany jako bezpieczna liczba całkowita (> 0, ≤ 2 147 483 647) przed użyciem w URL GitHub API (ochrona przed SSRF)
 - Wszystkie sekrety zarządzane przez Vercel Environment Variables
