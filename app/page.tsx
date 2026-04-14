@@ -4,8 +4,13 @@ import { useState, useRef, useEffect } from 'react'
 import styles from './page.module.css'
 
 interface Message {
+  id: string
   role: 'user' | 'assistant'
   content: string
+}
+
+const generateMessageId = () => {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 }
 
 export default function Home() {
@@ -54,7 +59,7 @@ export default function Home() {
     e.preventDefault()
     if (!input.trim() || isLoading) return
 
-    const userMessage: Message = { role: 'user', content: input.trim() }
+    const userMessage: Message = { id: generateMessageId(), role: 'user', content: input.trim() }
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setIsLoading(true)
@@ -82,6 +87,7 @@ export default function Home() {
       }
 
       const assistantMessage: Message = {
+        id: generateMessageId(),
         role: 'assistant',
         content: data.content,
       }
@@ -89,6 +95,7 @@ export default function Home() {
     } catch (error) {
       console.error('Error:', error)
       const errorMessage: Message = {
+        id: generateMessageId(),
         role: 'assistant',
         content: `Error: ${error instanceof Error ? error.message : 'Failed to get response from Claude'}`,
       }
@@ -158,9 +165,9 @@ export default function Home() {
               <p>Start a conversation with Claude by typing a message below.</p>
             </div>
           )}
-          {messages.map((message, index) => (
+          {messages.map((message) => (
             <div
-              key={index}
+              key={message.id}
               className={`${styles.message} ${
                 message.role === 'user' ? styles.userMessage : styles.assistantMessage
               }`}
