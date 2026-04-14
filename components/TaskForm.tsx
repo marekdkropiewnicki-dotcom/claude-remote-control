@@ -42,11 +42,11 @@ export default function TaskForm({ onSubmit }: TaskFormProps) {
         body: JSON.stringify({ agent: selectedAgent, description }),
       })
 
-      const data = await res.json()
-
       if (!res.ok) {
-        throw new Error(data.error || 'Błąd tworzenia zadania')
+        throw new Error(`HTTP ${res.status}: Błąd tworzenia zadania`)
       }
+
+      const data = await res.json()
 
       const task: Task = {
         id: String(data.issue?.number || Date.now()),
