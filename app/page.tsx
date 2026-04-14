@@ -39,7 +39,7 @@ export default function Home() {
       localStorage.setItem('anthropic_api_key', apiKey.trim())
       setIsConfigured(true)
     } else {
-      alert('Nieprawidłowy klucz API. Klucz powinien zaczynać się od "sk-ant-".')
+      alert('Invalid API key. The key should start with "sk-ant-".')
     }
   }
 
