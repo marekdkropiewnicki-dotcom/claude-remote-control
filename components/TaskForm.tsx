@@ -3,9 +3,9 @@
 import { useState } from 'react'
 
 const AGENTS = [
-  { id: 'copilot', label: 'GitHub Copilot', emoji: '🟣', login: 'copilot' },
-  { id: 'claude', label: 'Claude (Anthropic)', emoji: '🟠', login: 'claude-ai' },
-  { id: 'codex', label: 'Codex (OpenAI)', emoji: '🔵', login: 'codex-ai' },
+  { id: 'copilot', label: 'GitHub Copilot', emoji: '🟣' },
+  { id: 'claude', label: 'Claude (Anthropic)', emoji: '🟠' },
+  { id: 'codex', label: 'Codex (OpenAI)', emoji: '🔵' },
 ]
 
 interface Task {
