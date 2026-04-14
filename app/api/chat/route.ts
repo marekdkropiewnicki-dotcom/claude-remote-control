@@ -3,7 +3,18 @@ import Anthropic from '@anthropic-ai/sdk'
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages } = await request.json()
+    let body: { messages?: unknown }
+
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid JSON body' },
+        { status: 400 }
+      )
+    }
+
+    const { messages } = body
     const apiKey = request.headers.get('x-api-key')
 
     if (!apiKey) {
