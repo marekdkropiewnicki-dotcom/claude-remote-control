@@ -38,6 +38,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate message roles
+    for (const msg of messages) {
+      if (msg.role !== 'user' && msg.role !== 'assistant') {
+        return NextResponse.json(
+          { error: `Invalid message role: ${msg.role}` },
+          { status: 400 }
+        )
+      }
+    }
+
     const anthropic = new Anthropic({
       apiKey: apiKey,
     })
