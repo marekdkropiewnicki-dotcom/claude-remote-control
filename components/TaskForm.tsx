@@ -1,12 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-
-const AGENTS = [
-  { id: 'copilot', label: 'GitHub Copilot', emoji: '🟣', login: 'copilot' },
-  { id: 'claude', label: 'Claude (Anthropic)', emoji: '🟠', login: 'claude-ai' },
-  { id: 'codex', label: 'Codex (OpenAI)', emoji: '🔵', login: 'codex-ai' },
-]
+import { AGENTS } from '@/lib/agents'
 
 interface Task {
   id: string
@@ -83,11 +78,7 @@ export default function TaskForm({ onSubmit }: TaskFormProps) {
               onClick={() => setSelectedAgent(agent.id)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left ${
                 selectedAgent === agent.id
-                  ? agent.id === 'copilot'
-                    ? 'bg-purple-600/20 border-purple-500 text-purple-300'
-                    : agent.id === 'claude'
-                    ? 'bg-orange-600/20 border-orange-400 text-orange-300'
-                    : 'bg-blue-600/20 border-blue-500 text-blue-300'
+                  ? agent.selectedBg
                   : 'bg-gray-700/50 border-gray-600 text-gray-400 hover:border-gray-500'
               }`}
             >
@@ -139,3 +130,4 @@ export default function TaskForm({ onSubmit }: TaskFormProps) {
     </form>
   )
 }
+

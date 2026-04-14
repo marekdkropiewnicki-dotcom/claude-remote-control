@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { hashAdminToken } from '@/lib/auth'
 
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 
 // Trasy publiczne (nie wymagają logowania)
 const PUBLIC_PATHS = ['/login', '/api/auth']
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // Przepuść zasoby statyczne i publiczne ścieżki
@@ -31,8 +32,9 @@ export function middleware(req: NextRequest) {
   }
 
   const authCookie = req.cookies.get('auth')?.value
+  const expectedHash = await hashAdminToken(ADMIN_TOKEN)
 
-  if (authCookie !== ADMIN_TOKEN) {
+  if (authCookie !== expectedHash) {
     if (pathname.startsWith('/api')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -45,3 +47,4 @@ export function middleware(req: NextRequest) {
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }
+

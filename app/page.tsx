@@ -4,41 +4,7 @@ import { useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
 import AgentCard, { AgentInfo } from '@/components/AgentCard'
 import PRCard, { PullRequest } from '@/components/PRCard'
-
-// Konfiguracja agentów
-const AGENTS_CONFIG: Omit<AgentInfo, 'lastPR' | 'status'>[] = [
-  {
-    name: 'Copilot',
-    emoji: '🟣',
-    color: 'text-purple-400',
-    borderColor: 'border-purple-700/50',
-    badgeColor: 'bg-purple-700/60 text-purple-300',
-  },
-  {
-    name: 'Claude',
-    emoji: '🟠',
-    color: 'text-orange-400',
-    borderColor: 'border-orange-700/50',
-    badgeColor: 'bg-orange-700/60 text-orange-300',
-  },
-  {
-    name: 'Codex',
-    emoji: '🔵',
-    color: 'text-blue-400',
-    borderColor: 'border-blue-700/50',
-    badgeColor: 'bg-blue-700/60 text-blue-300',
-  },
-]
-
-// Wykrywanie agenta z PR
-function getAgentName(pr: PullRequest): string {
-  const branch = pr.head.ref.toLowerCase()
-  const author = pr.user.login.toLowerCase()
-  if (branch.includes('copilot') || author.includes('copilot')) return 'Copilot'
-  if (branch.includes('claude') || author.includes('claude')) return 'Claude'
-  if (branch.includes('codex') || author.includes('codex')) return 'Codex'
-  return ''
-}
+import { AGENTS, detectAgentFromPR } from '@/lib/agents'
 
 export default function DashboardPage() {
   const [prs, setPrs] = useState<PullRequest[]>([])
@@ -76,13 +42,19 @@ export default function DashboardPage() {
     return () => clearInterval(interval)
   }, [])
 
-  // Przygotuj dane agentów z PR-ów
-  const agents: AgentInfo[] = AGENTS_CONFIG.map((config) => {
-    const agentPRs = prs.filter((pr) => getAgentName(pr) === config.name)
+  // Przygotuj dane agentów z PR-ów, używając centralnej konfiguracji
+  const agents: AgentInfo[] = AGENTS.map((config) => {
+    const agentPRs = prs.filter(
+      (pr) => detectAgentFromPR(pr.head.ref, pr.user.login)?.id === config.id
+    )
     const latestPR = agentPRs[0]
 
     return {
-      ...config,
+      name: config.label,
+      emoji: config.emoji,
+      color: config.color,
+      borderColor: config.borderColor,
+      badgeColor: config.badgeColor,
       status: agentPRs.length > 0 ? 'busy' : 'online',
       lastPR: latestPR
         ? {
@@ -97,7 +69,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-900 pb-24">
       {/* Nagłówek */}
-      <header className="bg-gray-800 border-b border-gray-700 px-4 pt-safe">
+      <header className="bg-gray-800 border-b border-gray-700 px-4 pt-[env(safe-area-inset-top)]">
         <div className="max-w-2xl mx-auto py-4 flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-white flex items-center gap-2">
@@ -112,6 +84,7 @@ export default function DashboardPage() {
             onClick={fetchPRs}
             className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700 active:bg-gray-600"
             title="Odśwież"
+            aria-label="Odśwież listę PR-ów"
           >
             🔄
           </button>

@@ -17,7 +17,6 @@ export default function ReviewPage() {
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<ActionResult | null>(null)
-  const [expandedDiff, setExpandedDiff] = useState<number | null>(null)
 
   const fetchPRs = async () => {
     setLoading(true)
@@ -110,32 +109,46 @@ export default function ReviewPage() {
     }
   }
 
-  // Request Changes
+  // Request Changes — wywołuje /api/review z event REQUEST_CHANGES
   const handleRequestChanges = async (prNumber: number) => {
-    const pr = prs.find((p) => p.number === prNumber)
-    if (pr) {
-      window.open(pr.html_url, '_blank')
+    const body = window.prompt('Komentarz do żądania zmian (opcjonalny):') ?? ''
+    setActionLoading(true)
+    setResult(null)
+    try {
+      const res = await fetch('/api/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prNumber, event: 'REQUEST_CHANGES', body }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Błąd żądania zmian')
+      }
+      setResult({
+        prNumber,
+        action: 'changes',
+        message: `Zażądano zmian w PR #${prNumber} ✅`,
+        success: true,
+      })
+    } catch (err) {
+      setResult({
+        prNumber,
+        action: 'changes',
+        message: err instanceof Error ? err.message : 'Błąd żądania zmian',
+        success: false,
+      })
+    } finally {
+      setActionLoading(false)
     }
-    setResult({
-      prNumber,
-      action: 'changes',
-      message: 'Otwarto PR w GitHub — dodaj komentarz z żądaniem zmian',
-      success: true,
-    })
   }
 
-  // Podgląd diff — otwiera GitHub Files view w nowej karcie
-  const toggleDiff = (prNumber: number, htmlUrl: string) => {
-    if (expandedDiff === prNumber) {
-      setExpandedDiff(null)
-      return
-    }
+  // Podgląd diff — zawsze otwiera GitHub Files view w nowej karcie
+  const openDiff = (htmlUrl: string) => {
     try {
       window.open(`${htmlUrl}/files`, '_blank')
     } catch (err) {
       console.error('Nie można otworzyć diff:', err)
     }
-    setExpandedDiff(prNumber)
   }
 
   return (
@@ -152,6 +165,8 @@ export default function ReviewPage() {
           <button
             onClick={fetchPRs}
             className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700"
+            aria-label="Odśwież listę PR-ów"
+            title="Odśwież listę PR-ów"
           >
             🔄
           </button>
@@ -209,7 +224,7 @@ export default function ReviewPage() {
                 />
                 {/* Przycisk do podglądu diff */}
                 <button
-                  onClick={() => toggleDiff(pr.number, pr.html_url)}
+                  onClick={() => openDiff(pr.html_url)}
                   className="text-xs text-gray-500 hover:text-gray-300 text-left px-2 transition-colors"
                 >
                   📄 Podgląd diff (otwiera w GitHub) →

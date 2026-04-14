@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { hashAdminToken } from '@/lib/auth'
 
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 
@@ -21,8 +22,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Nieprawidłowy token' }, { status: 401 })
   }
 
+  // Przechowuj HMAC-SHA256 tokenu zamiast samego tokenu
+  const cookieValue = await hashAdminToken(ADMIN_TOKEN)
+
   const response = NextResponse.json({ ok: true })
-  response.cookies.set('auth', ADMIN_TOKEN, {
+  response.cookies.set('auth', cookieValue, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -37,3 +41,4 @@ export async function DELETE() {
   response.cookies.delete('auth')
   return response
 }
+

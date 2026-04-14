@@ -1,3 +1,5 @@
+import { detectAgentFromPR } from '@/lib/agents'
+
 export interface PullRequest {
   id: number
   number: number
@@ -21,38 +23,6 @@ interface PRCardProps {
   loading?: boolean
 }
 
-// Rozpoznawanie agenta na podstawie nazwy brancha lub autora
-function detectAgent(pr: PullRequest): {
-  label: string
-  color: string
-} {
-  const branch = pr.head.ref.toLowerCase()
-  const author = pr.user.login.toLowerCase()
-
-  if (
-    branch.includes('copilot') ||
-    author.includes('copilot') ||
-    branch.includes('github-copilot')
-  ) {
-    return { label: 'Copilot', color: 'text-purple-400' }
-  }
-  if (
-    branch.includes('claude') ||
-    author.includes('claude') ||
-    author.includes('anthropic')
-  ) {
-    return { label: 'Claude', color: 'text-orange-400' }
-  }
-  if (
-    branch.includes('codex') ||
-    author.includes('codex') ||
-    author.includes('openai')
-  ) {
-    return { label: 'Codex', color: 'text-blue-400' }
-  }
-  return { label: pr.user.login, color: 'text-gray-400' }
-}
-
 export default function PRCard({
   pr,
   onApprove,
@@ -60,7 +30,9 @@ export default function PRCard({
   onMerge,
   loading,
 }: PRCardProps) {
-  const agent = detectAgent(pr)
+  const agentConfig = detectAgentFromPR(pr.head.ref, pr.user.login)
+  const agentLabel = agentConfig?.label ?? pr.user.login
+  const agentColor = agentConfig?.color ?? 'text-gray-400'
 
   const stateStyles = pr.draft
     ? 'bg-gray-600 text-gray-300'
@@ -84,8 +56,8 @@ export default function PRCard({
             {pr.title}
           </a>
           <div className="flex items-center gap-2 mt-1">
-            <span className={`text-xs font-medium ${agent.color}`}>
-              {agent.label}
+            <span className={`text-xs font-medium ${agentColor}`}>
+              {agentLabel}
             </span>
             <span className="text-xs text-gray-500">
               #{pr.number} · {pr.head.ref}

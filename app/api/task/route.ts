@@ -1,21 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { AGENTS_BY_ID, AGENT_IDS, AgentId } from '@/lib/agents'
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN
 const REPO_OWNER = process.env.NEXT_PUBLIC_REPO_OWNER || 'marekdkropiewnicki-dotcom'
 const REPO_NAME = process.env.NEXT_PUBLIC_REPO_NAME || 'GentelmeN-CorE'
-
-// Mapowanie agentów na ich GitHub login (assignee)
-const AGENT_LOGINS: Record<string, string> = {
-  copilot: 'copilot',
-  claude: 'claude[bot]',
-  codex: 'codex[bot]',
-}
-
-const AGENT_LABELS: Record<string, string> = {
-  copilot: 'agent:copilot',
-  claude: 'agent:claude',
-  codex: 'agent:codex',
-}
 
 export async function POST(req: NextRequest) {
   if (!GITHUB_TOKEN) {
@@ -41,30 +29,18 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Validate agent is a supported value
-  const supportedAgents = Object.keys(AGENT_LOGINS)
-  if (!supportedAgents.includes(agent)) {
+  // Walidacja: agent musi być jednym ze znanych identyfikatorów
+  if (!AGENT_IDS.includes(agent as AgentId)) {
     return NextResponse.json(
-      { error: `Nieznany agent. Obsługiwane agenty: ${supportedAgents.join(', ')}` },
+      { error: `Nieznany agent. Obsługiwane: ${AGENT_IDS.join(', ')}` },
       { status: 400 }
     )
   }
 
-  const agentLogin = AGENT_LOGINS[agent]
-  const agentLabel = AGENT_LABELS[agent]
-
-  // Etykieta agenta w tytule
-  const agentEmoji =
-    agent === 'copilot' ? '🟣' : agent === 'claude' ? '🟠' : '🔵'
-  const agentName =
-    agent === 'copilot'
-      ? 'Copilot'
-      : agent === 'claude'
-      ? 'Claude'
-      : 'Codex'
+  const agentConfig = AGENTS_BY_ID[agent as keyof typeof AGENTS_BY_ID]
 
   const issueBody = [
-    `## Zlecenie dla ${agentName}`,
+    `## Zlecenie dla ${agentConfig.label}`,
     '',
     description.trim(),
     '',
@@ -84,10 +60,10 @@ export async function POST(req: NextRequest) {
           'X-GitHub-Api-Version': '2022-11-28',
         },
         body: JSON.stringify({
-          title: `${agentEmoji} [${agentName}] ${description.trim().slice(0, 80)}`,
+          title: `${agentConfig.emoji} [${agentConfig.label}] ${description.trim().slice(0, 80)}`,
           body: issueBody,
-          labels: agentLabel ? [agentLabel] : [],
-          ...(agentLogin ? { assignees: [agentLogin] } : {}),
+          labels: [agentConfig.issueLabel],
+          assignees: [agentConfig.githubLogin],
         }),
       }
     )
@@ -109,3 +85,4 @@ export async function POST(req: NextRequest) {
     )
   }
 }
+

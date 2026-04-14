@@ -55,14 +55,13 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    if (res.status === 204 || res.status === 200) {
-      let data = { message: 'Merge zakończony sukcesem' }
-      try {
-        data = await res.json()
-      } catch (err) {
-        // 204 No Content — brak body, używamy domyślnej wiadomości
-        console.log('Merge 204: brak body w odpowiedzi', err)
-      }
+    if (res.status === 204) {
+      // GitHub zwraca 204 No Content po udanym merge — brak body
+      return NextResponse.json({ message: 'Merge zakończony sukcesem' })
+    }
+
+    if (res.status === 200) {
+      const data = await res.json()
       return NextResponse.json(data)
     }
 

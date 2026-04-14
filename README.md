@@ -78,7 +78,7 @@ Otwórz [http://localhost:3000](http://localhost:3000).
 
 ## Stack
 
-- **Next.js 14** (App Router)
+- **Next.js 15** (App Router)
 - **Tailwind CSS** — ciemny motyw (`bg-gray-900`)
 - **TypeScript**
 - **GitHub REST API v3**
