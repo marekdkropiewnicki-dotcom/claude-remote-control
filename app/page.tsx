@@ -53,10 +53,13 @@ export default function DashboardPage() {
     try {
       setError(null)
       const res = await fetch('/api/prs')
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Błąd pobierania PR-ów')
+      }
+
       const data = await res.json()
-
-      if (!res.ok) throw new Error(data.error || 'Błąd pobierania PR-ów')
-
       setPrs(data.prs || [])
       setLastUpdated(new Date().toLocaleTimeString('pl-PL'))
     } catch (err) {

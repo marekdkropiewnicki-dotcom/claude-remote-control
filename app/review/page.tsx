@@ -24,8 +24,11 @@ export default function ReviewPage() {
     setError(null)
     try {
       const res = await fetch('/api/prs')
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Błąd pobierania PR-ów')
+      }
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Błąd pobierania PR-ów')
       setPrs(data.prs || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Nieznany błąd')
@@ -49,8 +52,11 @@ export default function ReviewPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prNumber, mergeMethod: 'squash' }),
       })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Błąd merge')
+      }
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Błąd merge')
       setResult({
         prNumber,
         action: 'merge',
@@ -81,8 +87,11 @@ export default function ReviewPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prNumber, event: 'APPROVE' }),
       })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Błąd zatwierdzania')
+      }
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Błąd zatwierdzania')
       setResult({
         prNumber,
         action: 'approve',
