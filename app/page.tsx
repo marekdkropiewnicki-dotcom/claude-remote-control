@@ -128,8 +128,8 @@ export default function Home() {
             </button>
           </div>
           <p className={styles.note}>
-            Your API key is stored locally in your browser and never sent to our servers.
-            It&apos;s only used to communicate directly with Anthropic&apos;s API.
+            Your API key is stored locally in your browser. It may be sent to our server
+            only to process your chat requests, and it is not stored or persisted by us.
           </p>
         </div>
       </main>
