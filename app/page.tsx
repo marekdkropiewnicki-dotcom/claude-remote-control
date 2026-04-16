@@ -153,6 +153,7 @@ export default function Home() {
               placeholder="sk-ant..."
               className={styles.apiKeyInput}
               onKeyDown={(e) => e.key === 'Enter' && saveApiKey()}
+              aria-label="Anthropic API key"
             />
             <button
               onClick={saveApiKey}
@@ -239,6 +240,7 @@ export default function Home() {
             placeholder="Type your message..."
             className={styles.input}
             disabled={isLoading}
+            aria-label="Chat message input"
           />
           <button
             type="submit"
