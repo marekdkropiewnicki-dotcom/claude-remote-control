@@ -55,7 +55,6 @@ export default function ReviewPage() {
         const data = await res.json()
         throw new Error(data.error || 'Błąd merge')
       }
-      const data = await res.json()
       setResult({
         prNumber,
         action: 'merge',
