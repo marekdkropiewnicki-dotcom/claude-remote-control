@@ -18,7 +18,7 @@
 Panel webowy do sterowania agentami AI. Budowany na Vercelu.
 
 **Live:** https://claude-remote-control-gilt.vercel.app
-**Stack:** Next.js 15 + Tailwind CSS + Vercel + TypeScript
+**Stack:** Next.js 15 + CSS Modules + global CSS + Vercel + TypeScript
 
 💡 **Wizja — jeden panel, trzy zakładki:**
 - 💬 Chat z Claude AI
