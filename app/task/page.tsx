@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Navbar from '@/components/Navbar'
 import TaskForm from '@/components/TaskForm'
+import { AGENTS_BY_ID } from '@/lib/agents'
 
 interface TaskRecord {
   id: string
@@ -10,18 +11,6 @@ interface TaskRecord {
   description: string
   issueUrl?: string
   createdAt: string
-}
-
-const AGENT_EMOJI: Record<string, string> = {
-  copilot: '🟣',
-  claude: '🟠',
-  codex: '🔵',
-}
-
-const AGENT_NAME: Record<string, string> = {
-  copilot: 'Copilot',
-  claude: 'Claude',
-  codex: 'Codex',
 }
 
 const STORAGE_KEY = 'gencore_tasks'
@@ -114,12 +103,12 @@ export default function TaskPage() {
                   className="bg-gray-800 border border-gray-700 rounded-2xl p-4 flex gap-3 items-start"
                 >
                   <span className="text-xl shrink-0">
-                    {AGENT_EMOJI[task.agent] || '🤖'}
+                    {AGENTS_BY_ID[task.agent]?.emoji || '🤖'}
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-medium text-gray-400">
-                        {AGENT_NAME[task.agent] || task.agent}
+                        {AGENTS_BY_ID[task.agent]?.label || task.agent}
                       </span>
                       <span className="text-xs text-gray-600">
                         {new Date(task.createdAt).toLocaleString('pl-PL')}
