@@ -6,6 +6,16 @@ const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 // Trasy publiczne (nie wymagają logowania)
 const PUBLIC_PATHS = ['/login', '/api/auth']
 
+// Cache the hashed token at module scope to avoid recomputing on every request
+let cachedExpectedHash: string | null = null
+
+async function getCachedHash(): Promise<string> {
+  if (cachedExpectedHash === null) {
+    cachedExpectedHash = await hashAdminToken(ADMIN_TOKEN!)
+  }
+  return cachedExpectedHash
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
@@ -32,7 +42,7 @@ export async function middleware(req: NextRequest) {
   }
 
   const authCookie = req.cookies.get('auth')?.value
-  const expectedHash = await hashAdminToken(ADMIN_TOKEN)
+  const expectedHash = await getCachedHash()
 
   if (authCookie !== expectedHash) {
     if (pathname.startsWith('/api')) {
