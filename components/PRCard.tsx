@@ -7,6 +7,7 @@ export interface PullRequest {
   user: { login: string }
   state: string
   draft: boolean
+  merged?: boolean
   html_url: string
   created_at: string
   head: { ref: string }
@@ -38,9 +39,17 @@ export default function PRCard({
     ? 'bg-gray-600 text-gray-300'
     : pr.state === 'open'
     ? 'bg-green-700/60 text-green-300'
-    : 'bg-purple-700/60 text-purple-300'
+    : pr.merged
+    ? 'bg-purple-700/60 text-purple-300'
+    : 'bg-red-700/60 text-red-300'
 
-  const stateLabel = pr.draft ? 'Draft' : pr.state === 'open' ? 'Open' : 'Merged'
+  const stateLabel = pr.draft
+    ? 'Draft'
+    : pr.state === 'open'
+    ? 'Open'
+    : pr.merged
+    ? 'Merged'
+    : 'Closed'
 
   return (
     <div className="bg-gray-800 rounded-2xl p-4 border border-gray-700 flex flex-col gap-3">
