@@ -17,6 +17,7 @@ export default function DashboardPage() {
 
   const fetchPRs = async () => {
     try {
+      setLoading(true)
       setError(null)
       const res = await fetch('/api/prs')
 
