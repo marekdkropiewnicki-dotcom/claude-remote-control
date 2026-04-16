@@ -144,7 +144,7 @@ export default function ReviewPage() {
   // Podgląd diff — zawsze otwiera GitHub Files view w nowej karcie
   const openDiff = (htmlUrl: string) => {
     try {
-      window.open(`${htmlUrl}/files`, '_blank')
+      window.open(`${htmlUrl}/files`, '_blank', 'noopener,noreferrer')
     } catch (err) {
       console.error('Nie można otworzyć diff:', err)
     }
