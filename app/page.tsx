@@ -19,6 +19,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [apiKey, setApiKey] = useState('')
   const [isConfigured, setIsConfigured] = useState(false)
+  const [persistApiKey, setPersistApiKey] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -30,10 +31,21 @@ export default function Home() {
   }, [messages])
 
   useEffect(() => {
-    const savedKey = localStorage.getItem('anthropic_api_key')
-    if (savedKey) {
-      setApiKey(savedKey)
+    // Check sessionStorage first (session-only storage)
+    const sessionKey = sessionStorage.getItem('anthropic_api_key')
+    const sessionPersist = sessionStorage.getItem('anthropic_api_key_persist') === 'true'
+    
+    // Check localStorage only if user explicitly opted in to persistence
+    let persistedKey: string | null = null
+    if (sessionPersist) {
+      persistedKey = localStorage.getItem('anthropic_api_key')
+    }
+    
+    const keyToUse = sessionKey || persistedKey
+    if (keyToUse) {
+      setApiKey(keyToUse)
       setIsConfigured(true)
+      setPersistApiKey(sessionPersist)
     }
   }, [])
 
@@ -41,7 +53,20 @@ export default function Home() {
 
   const saveApiKey = () => {
     if (apiKey.trim() && isValidApiKey(apiKey)) {
-      localStorage.setItem('anthropic_api_key', apiKey.trim())
+      const trimmedKey = apiKey.trim()
+      
+      // Always store in sessionStorage (cleared when browser closes)
+      sessionStorage.setItem('anthropic_api_key', trimmedKey)
+      
+      // Only persist to localStorage if user explicitly opts in
+      if (persistApiKey) {
+        localStorage.setItem('anthropic_api_key', trimmedKey)
+        sessionStorage.setItem('anthropic_api_key_persist', 'true')
+      } else {
+        localStorage.removeItem('anthropic_api_key')
+        sessionStorage.removeItem('anthropic_api_key_persist')
+      }
+      
       setIsConfigured(true)
     } else {
       alert('Invalid API key. The key should start with "sk-ant-".')
@@ -50,8 +75,11 @@ export default function Home() {
 
   const clearApiKey = () => {
     localStorage.removeItem('anthropic_api_key')
+    sessionStorage.removeItem('anthropic_api_key')
+    sessionStorage.removeItem('anthropic_api_key_persist')
     setApiKey('')
     setIsConfigured(false)
+    setPersistApiKey(false)
     setMessages([])
   }
 
@@ -134,9 +162,19 @@ export default function Home() {
               Save API Key
             </button>
           </div>
+          <label className={styles.persistCheckbox}>
+            <input
+              type="checkbox"
+              checked={persistApiKey}
+              onChange={(e) => setPersistApiKey(e.target.checked)}
+            />
+            <span>Remember API key across browser sessions (less secure)</span>
+          </label>
           <p className={styles.note}>
-            Your API key is stored locally in your browser. It may be sent to our server
-            only to process your chat requests, and it is not stored or persisted by us.
+            Your API key is stored in your browser's session memory by default and will be 
+            cleared when you close your browser. It may be sent to our server only to process 
+            your chat requests, and it is not stored or persisted by us. If you enable 
+            persistent storage, your key will remain on this device until manually cleared.
           </p>
         </div>
       </main>
