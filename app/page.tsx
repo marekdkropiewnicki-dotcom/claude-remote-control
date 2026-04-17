@@ -171,10 +171,10 @@ export default function Home() {
             <span>Remember API key across browser sessions (less secure)</span>
           </label>
           <p className={styles.note}>
-            Your API key is stored in your browser&apos;s session memory by default and will be 
-            cleared when you close your browser. It may be sent to our server only to process 
-            your chat requests, and it is not stored or persisted by us. If you enable 
-            persistent storage, your key will remain on this device until manually cleared.
+            Your API key is stored in your browser&apos;s session memory by default and will be
+             cleared when you close your browser. It may be sent to our server only to process
+             your chat requests, and it is not stored or persisted by us. If you enable
+             persistent storage, your key will remain on this device until manually cleared.
           </p>
         </div>
       </main>
