@@ -36,6 +36,12 @@ export async function middleware(req: NextRequest) {
       return NextResponse.next()
     }
 
+    if (pathname.startsWith('/api')) {
+      return NextResponse.json(
+        { error: 'Server misconfiguration: ADMIN_TOKEN is not set.' },
+        { status: 500 }
+      )
+    }
     return new NextResponse('Server misconfiguration: ADMIN_TOKEN is not set.', {
       status: 500,
     })
