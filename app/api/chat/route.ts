@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       // Validate role
       if ((msg as Record<string, unknown>).role !== 'user' && (msg as Record<string, unknown>).role !== 'assistant') {
         return NextResponse.json(
-          { error: `Invalid message role: ${(msg as Record<string, unknown>).role}` },
+          { error: `Message at index ${i} has invalid role: ${(msg as Record<string, unknown>).role}` },
           { status: 400 }
         )
       }
