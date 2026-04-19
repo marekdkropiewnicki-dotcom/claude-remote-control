@@ -89,7 +89,6 @@ export default function ReviewPage() {
         const data = await res.json()
         throw new Error(data.error || 'Błąd zatwierdzania')
       }
-      const data = await res.json()
       setResult({
         prNumber,
         action: 'approve',
