@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { AGENTS } from '@/lib/agents'
+import { useState, type FormEvent } from 'react'
+import { AGENTS, type AgentId } from '@/lib/agents'
 
 interface Task {
   id: string
-  agent: string
+  agent: AgentId
   description: string
   issueUrl?: string
   createdAt: string
@@ -22,7 +22,7 @@ export default function TaskForm({ onSubmit }: TaskFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (!description.trim()) return
 

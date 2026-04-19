@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react'
 import Navbar from '@/components/Navbar'
 import TaskForm from '@/components/TaskForm'
-import { AGENTS_BY_ID } from '@/lib/agents'
+import { AGENTS_BY_ID, type AgentId } from '@/lib/agents'
 
 interface TaskRecord {
   id: string
-  agent: string
+  agent: AgentId
   description: string
   issueUrl?: string
   createdAt: string
