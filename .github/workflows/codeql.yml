@@ -34,12 +34,12 @@ jobs:
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@8c34c7a9f5d5f4d64b1f4df7e74a1a1fde37d0d8 # v3
+        uses: github/codeql-action/init@v3
         with:
           languages: javascript-typescript
           build-mode: none
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@8c34c7a9f5d5f4d64b1f4df7e74a1a1fde37d0d8 # v3
+        uses: github/codeql-action/analyze@v3
         with:
           category: "/language:javascript-typescript"
