@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Navbar from '@/components/Navbar'
 import TaskForm from '@/components/TaskForm'
-import { AGENTS_BY_ID, type AgentId } from '@/lib/agents'
+import { AGENTS_BY_ID, AGENT_IDS, type AgentId } from '@/lib/agents'
 
 interface TaskRecord {
   id: string
@@ -22,7 +22,21 @@ export default function TaskPage() {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) setTasks(JSON.parse(stored))
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed)) {
+          const valid = parsed.filter(
+            (r): r is TaskRecord =>
+              r !== null &&
+              typeof r === 'object' &&
+              typeof r.id === 'string' &&
+              AGENT_IDS.includes(r.agent) &&
+              typeof r.description === 'string' &&
+              typeof r.createdAt === 'string'
+          )
+          setTasks(valid)
+        }
+      }
     } catch (err) {
       console.error('Nie można wczytać historii z localStorage:', err)
     }

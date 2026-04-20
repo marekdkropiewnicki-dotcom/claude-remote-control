@@ -38,7 +38,14 @@ export default function TaskForm({ onSubmit }: TaskFormProps) {
       })
 
       if (!res.ok) {
-        throw new Error(`HTTP ${res.status}: Błąd tworzenia zadania`)
+        let errMsg = `HTTP ${res.status}: Błąd tworzenia zadania`
+        try {
+          const errData = await res.json()
+          if (errData.error) errMsg = errData.error
+        } catch {
+          // keep default message
+        }
+        throw new Error(errMsg)
       }
 
       const data = await res.json()

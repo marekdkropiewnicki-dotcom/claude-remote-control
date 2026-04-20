@@ -109,7 +109,12 @@ export default function ReviewPage() {
 
   // Request Changes — wywołuje /api/review z event REQUEST_CHANGES
   const handleRequestChanges = async (prNumber: number) => {
-    const body = window.prompt('Komentarz do żądania zmian (opcjonalny):') ?? ''
+    const body = window.prompt('Komentarz do żądania zmian (wymagany):')
+    if (body === null) return
+    if (!body.trim()) {
+      alert('Komentarz jest wymagany przy żądaniu zmian.')
+      return
+    }
     setActionLoading(true)
     setResult(null)
     try {

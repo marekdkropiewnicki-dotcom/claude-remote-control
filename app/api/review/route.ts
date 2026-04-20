@@ -40,6 +40,13 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  if (event !== 'APPROVE' && !reviewBody.trim()) {
+    return NextResponse.json(
+      { error: 'Komentarz jest wymagany dla REQUEST_CHANGES i COMMENT' },
+      { status: 400 }
+    )
+  }
+
   try {
     const res = await fetch(
       `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls/${safePrNumber}/reviews`,
