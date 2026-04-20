@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Nieprawidłowe dane JSON' }, { status: 400 })
   }
 
-  if (!body.token || !timingSafeEqual(body.token, ADMIN_TOKEN)) {
+  if (!timingSafeEqual(body.token ?? '', ADMIN_TOKEN)) {
     return NextResponse.json({ error: 'Nieprawidłowy token' }, { status: 401 })
   }
 

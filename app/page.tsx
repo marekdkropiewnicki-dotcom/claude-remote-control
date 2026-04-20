@@ -38,7 +38,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchPRs()
-    // Odśwież co 60 sekund (cicho, bez pokaźnika ładowania)
+    // Odśwież co 60 sekund (cicho, bez wskaźnika ładowania)
     const interval = setInterval(() => fetchPRs(false), 60_000)
     return () => clearInterval(interval)
   }, [])
