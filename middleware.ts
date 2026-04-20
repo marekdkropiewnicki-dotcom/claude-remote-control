@@ -1,0 +1,65 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { hashAdminToken, timingSafeEqual } from '@/lib/auth'
+
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN
+
+// Trasy publiczne (nie wymagają logowania)
+const PUBLIC_PATHS = ['/login', '/api/auth']
+
+// Cache the hashed token at module scope to avoid recomputing on every request
+let cachedExpectedHash: string | null = null
+
+async function getCachedHash(): Promise<string> {
+  if (cachedExpectedHash === null) {
+    cachedExpectedHash = await hashAdminToken(ADMIN_TOKEN!)
+  }
+  return cachedExpectedHash
+}
+
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl
+
+  // Przepuść zasoby statyczne i publiczne ścieżki
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/favicon') ||
+    pathname.startsWith('/manifest') ||
+    PUBLIC_PATHS.some((p) => pathname.startsWith(p))
+  ) {
+    return NextResponse.next()
+  }
+
+  // Jeśli ADMIN_TOKEN nie jest ustawiony, pozwól tylko poza production.
+  // W production zakończ żądanie błędem, aby nie ujawnić chronionych tras.
+  if (!ADMIN_TOKEN) {
+    if (process.env.NODE_ENV !== 'production') {
+      return NextResponse.next()
+    }
+
+    if (pathname.startsWith('/api')) {
+      return NextResponse.json(
+        { error: 'Server misconfiguration: ADMIN_TOKEN is not set.' },
+        { status: 500 }
+      )
+    }
+    return new NextResponse('Server misconfiguration: ADMIN_TOKEN is not set.', {
+      status: 500,
+    })
+  }
+
+  const authCookie = req.cookies.get('auth')?.value
+  const expectedHash = await getCachedHash()
+
+  if (!timingSafeEqual(authCookie ?? '', expectedHash)) {
+    if (pathname.startsWith('/api')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    return NextResponse.redirect(new URL('/login', req.url))
+  }
+
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+}

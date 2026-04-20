@@ -41,17 +41,28 @@ export async function POST(request: NextRequest) {
     // Validate message properties
     for (let i = 0; i < messages.length; i++) {
       const msg = messages[i]
-      
-      // Validate role
-      if (msg.role !== 'user' && msg.role !== 'assistant') {
+
+      // Validate msg is a non-null object
+      if (typeof msg !== 'object' || msg === null) {
         return NextResponse.json(
-          { error: `Invalid message role: ${msg.role}` },
+          { error: `Message at index ${i} is not a valid object` },
           { status: 400 }
         )
       }
-      
-      // Validate content exists and is a string
-      if (typeof msg.content !== 'string' || msg.content.length === 0) {
+
+      const msgObj = msg as Record<string, unknown>
+
+      // Validate role
+      if (msgObj.role !== 'user' && msgObj.role !== 'assistant') {
+        return NextResponse.json(
+          { error: `Message at index ${i} has invalid role: ${msgObj.role}` },
+          { status: 400 }
+        )
+      }
+
+      // Validate content exists and is a non-empty, non-whitespace string
+      const content = msgObj.content
+      if (typeof content !== 'string' || content.trim().length === 0) {
         return NextResponse.json(
           { error: `Message at index ${i} must have non-empty string content` },
           { status: 400 }
