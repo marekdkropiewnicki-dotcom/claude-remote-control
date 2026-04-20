@@ -1,17 +1,19 @@
 # dependencies
 node_modules/
-/.pnp
+.pnp
 .pnp.js
 
 # testing
-/coverage
+coverage/
 
 # next.js
-/.next/
-/out/
+.next/
+out/
+build
+dist
 
 # production
-/build
+build/
 
 # misc
 .DS_Store
@@ -23,8 +25,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
 .env
+.env*.local
+.env.production
 
 # vercel
 .vercel
@@ -35,3 +38,10 @@ next-env.d.ts
 
 # package lock (large diff noise; Vercel runs npm install from package.json)
 package-lock.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
