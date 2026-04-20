@@ -64,3 +64,9 @@ export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }
 
+    if (pathname.startsWith('/api')) {
+      return NextResponse.json(
+        { error: 'Server misconfiguration: ADMIN_TOKEN is not set.' },
+        { status: 500 }
+      )
+    }
