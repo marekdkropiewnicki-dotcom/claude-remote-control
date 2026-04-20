@@ -1,126 +1,105 @@
-# Claude Remote Control
+# GeNCorE — Command Center
 
-A modern web interface for remotely controlling and interacting with Claude AI. This Next.js 15 application provides a user-friendly platform to communicate with the Anthropic Claude API.
+> 🤖 Webowy panel sterowania agentami AI (GitHub Copilot, Claude, Codex) dostępny z każdego urządzenia — iPhone, desktop, Telegram.
 
-## Prerequisites
+**Live:** [https://claude-remote-control-gilt.vercel.app](https://claude-remote-control-gilt.vercel.app)
 
-- **Node.js**: Version 18.x or higher
-- **npm**: Version 9.x or higher (comes with Node.js)
-- **Anthropic API Key**: Required for Claude API access. Get yours at [console.anthropic.com](https://console.anthropic.com)
+---
 
-## Getting Started
+## Funkcjonalności
 
-### 1. Clone the Repository
+| Strona | Opis |
+|---|---|
+| `/` | **Dashboard** — status agentów + lista aktywnych PR-ów z GentelmeN-CorE |
+| `/task` | **Panel zleceń** — formularz zlecania zadań agentom (tworzy Issue w repo) |
+| `/review` | **PR Review** — przeglądaj, zatwierdzaj i merguj pull requesty |
+
+### API Routes
+
+| Endpoint | Metoda | Opis |
+|---|---|---|
+| `/api/prs` | `GET` | Lista otwartych PR-ów z GitHub API |
+| `/api/task` | `POST` | Tworzy Issue/zadanie dla wybranego agenta |
+| `/api/merge` | `POST` | Merguje wskazany PR przez GitHub API |
+| `/api/review` | `POST` | Zatwierdza lub żąda zmian w PR przez GitHub API |
+| `/api/auth` | `POST` / `DELETE` | Logowanie / wylogowanie |
+
+---
+
+## Deployment na Vercel
+
+### 1. Fork lub klonuj repo
 
 ```bash
-git clone git+https://github.com/marekdkropiewnicki-dotcom/claude-remote-control.git
+git clone https://github.com/marekdkropiewnicki-dotcom/claude-remote-control.git
 cd claude-remote-control
-```
-
-### 2. Install Dependencies
-
-```bash
 npm install
 ```
 
-### 3. Environment Configuration
+### 2. Utwórz GitHub Personal Access Token
 
-The application supports two modes for API key usage:
+W [github.com/settings/tokens](https://github.com/settings/tokens) stwórz token z uprawnieniami:
+- `repo` — pełny dostęp do repozytoriów
 
-**Option A: Client-side API keys (Recommended for development)**
-- Users provide their own API keys through the web interface
-- No server-side configuration needed
-- More secure for public deployments
+### 3. Skonfiguruj zmienne środowiskowe na Vercel
 
-**Option B: Server-side API key (Optional)**
-If you want to use a server-side API key, create a `.env.local` file:
+W **Vercel Dashboard → Settings → Environment Variables** dodaj:
+
+```
+GITHUB_TOKEN=ghp_...           # Twój GitHub PAT
+ADMIN_TOKEN=twoje_haslo        # Dowolne hasło do panelu
+NEXT_PUBLIC_REPO_OWNER=marekdkropiewnicki-dotcom
+NEXT_PUBLIC_REPO_NAME=GentelmeN-CorE
+```
+
+### 4. Deploy
+
+```bash
+npx vercel --prod
+```
+
+Lub automatycznie przez połączenie z GitHub (każdy push = deploy).
+
+---
+
+## Lokalne uruchomienie
 
 ```bash
 cp .env.example .env.local
-```
+# Uzupełnij .env.local własnymi wartościami
 
-Then edit `.env.local` and add your Anthropic API key:
-
-```
-ANTHROPIC_API_KEY=your-api-key-here
-```
-
-### 4. Run Development Server
-
-```bash
+npm install
 npm run dev
 ```
 
-The application will be available at `http://localhost:3000`
+Otwórz [http://localhost:3000](http://localhost:3000).
 
-## Scripts
+---
 
-- **`npm run dev`** - Start the development server with hot reload
-- **`npm run build`** - Build the application for production
-- **`npm start`** - Start the production server (requires running `npm run build` first)
-- **`npm run lint`** - Run ESLint to check code quality
+## Stack
 
-## Project Structure
+- **Next.js 15** (App Router)
+- **Tailwind CSS** — ciemny motyw (`bg-gray-900`)
+- **TypeScript**
+- **GitHub REST API v3**
+- **Vercel** — deployment
 
-- **`app/`** - Next.js 15 App Router directory
-  - **`api/chat/`** - API route for Claude chat interactions
-  - **`page.tsx`** - Main application page
-  - **`layout.tsx`** - Root layout component
-- **`public/`** - Static assets
-- **`package.json`** - Project dependencies and scripts
+## Design
 
-## Deployment
+- 🟣 **Copilot** — fioletowy (`purple-400`)
+- 🟠 **Claude** — pomarańczowy (`orange-400`)
+- 🔵 **Codex** — niebieski (`blue-400`)
+- 📱 **Mobile-first** — zoptymalizowany pod iPhone (Brave browser)
+- 🌑 **Dark mode** — zawsze ciemny motyw
 
-### Vercel (Recommended)
+---
 
-This project is optimized for deployment on Vercel:
+## Bezpieczeństwo
 
-1. Push your code to GitHub
-2. Connect your repository to [Vercel](https://vercel.com)
-3. Add your environment variables in Vercel project settings if using server-side API keys
-4. Deploy with a single click
-
-### Other Platforms
-
-The application can be deployed to any Node.js-compatible hosting platform (AWS, Azure, DigitalOcean, etc.):
-
-```bash
-npm run build
-npm start
-```
-
-## Configuration
-
-### API Key Management
-
-- **Client-side approach**: Users enter their Anthropic API key directly in the web interface (no backend storage)
-- **Server-side approach**: Set `ANTHROPIC_API_KEY` environment variable for backend key management
-
-See `.env.example` for configuration options.
-
-## Technology Stack
-
-- **Framework**: Next.js 15
-- **Runtime**: Node.js
-- **UI Library**: React 18
-- **Language**: TypeScript
-- **AI API**: Anthropic Claude API
-- **Styling**: Built-in Next.js CSS support
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit issues or pull requests to improve the project.
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Support
-
-For issues, questions, or suggestions, please visit the [GitHub repository](https://github.com/marekdkropiewnicki-dotcom/claude-remote-control/issues)
-
-## Learn More
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Anthropic Claude API Documentation](https://docs.anthropic.com)
-- [React Documentation](https://react.dev)
+- Cały panel chroniony sesją cookie (7 dni); brak logowania = przekierowanie na `/login`
+- Cookie `auth` przechowuje `HMAC-SHA256(ADMIN_TOKEN, 'gencore:session:v1')` — surowy token **nigdy** nie trafia do cookie
+- Brak `ADMIN_TOKEN` w production kończy żądania błędem HTTP 500 zamiast otwierać panel publicznie
+- Niezalogowane żądania do `/api/*` zwracają JSON `{ error: 'Unauthorized' }` (HTTP 401) zamiast przekierowywać na HTML
+- `GITHUB_TOKEN` nigdy nie trafia do frontendu — używany wyłącznie w API routes (server-side)
+- Numer PR z wejścia użytkownika walidowany jako bezpieczna liczba całkowita (> 0, ≤ 2 147 483 647) przed użyciem w URL GitHub API (ochrona przed SSRF)
+- Wszystkie sekrety zarządzane przez Vercel Environment Variables

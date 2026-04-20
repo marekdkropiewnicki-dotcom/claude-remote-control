@@ -1,254 +1,162 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import styles from './page.module.css'
+import { useEffect, useState } from 'react'
+import Navbar from '@/components/Navbar'
+import AgentCard, { AgentInfo } from '@/components/AgentCard'
+import PRCard, { PullRequest } from '@/components/PRCard'
+import { AGENTS, detectAgentFromPR } from '@/lib/agents'
 
-interface Message {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-}
+export default function DashboardPage() {
+  const [prs, setPrs] = useState<PullRequest[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<string>('')
 
-const generateMessageId = () => {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
-}
+  const repoOwner = process.env.NEXT_PUBLIC_REPO_OWNER || 'marekdkropiewnicki-dotcom'
+  const repoName = process.env.NEXT_PUBLIC_REPO_NAME || 'GentelmeN-CorE'
 
-export default function Home() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [apiKey, setApiKey] = useState('')
-  const [isConfigured, setIsConfigured] = useState(false)
-  const [persistApiKey, setPersistApiKey] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const fetchPRs = async (showLoading = true) => {
+    try {
+      if (showLoading) setLoading(true)
+      setError(null)
+      const res = await fetch('/api/prs')
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Błąd pobierania PR-ów')
+      }
+
+      const data = await res.json()
+      setPrs(data.prs || [])
+      setLastUpdated(new Date().toLocaleTimeString('pl-PL'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nieznany błąd')
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
-
-  useEffect(() => {
-    // Check sessionStorage first (session-only storage)
-    const sessionKey = sessionStorage.getItem('anthropic_api_key')
-    const sessionPersist = sessionStorage.getItem('anthropic_api_key_persist') === 'true'
-    
-    // Check localStorage only if user explicitly opted in to persistence
-    let persistedKey: string | null = null
-    if (sessionPersist) {
-      persistedKey = localStorage.getItem('anthropic_api_key')
-    }
-    
-    const keyToUse = sessionKey || persistedKey
-    if (keyToUse) {
-      setApiKey(keyToUse)
-      setIsConfigured(true)
-      setPersistApiKey(sessionPersist)
-    }
+    fetchPRs()
+    // Odśwież co 60 sekund (cicho, bez wskaźnika ładowania)
+    const interval = setInterval(() => fetchPRs(false), 60_000)
+    return () => clearInterval(interval)
   }, [])
 
-  const isValidApiKey = (key: string) => key.trim().startsWith('sk-ant-')
-
-  const saveApiKey = () => {
-    if (apiKey.trim() && isValidApiKey(apiKey)) {
-      const trimmedKey = apiKey.trim()
-      
-      // Always store in sessionStorage (cleared when browser closes)
-      sessionStorage.setItem('anthropic_api_key', trimmedKey)
-      
-      // Only persist to localStorage if user explicitly opts in
-      if (persistApiKey) {
-        localStorage.setItem('anthropic_api_key', trimmedKey)
-        sessionStorage.setItem('anthropic_api_key_persist', 'true')
-      } else {
-        localStorage.removeItem('anthropic_api_key')
-        sessionStorage.removeItem('anthropic_api_key_persist')
-      }
-      
-      setIsConfigured(true)
-    } else {
-      alert('Invalid API key. The key should start with "sk-ant-".')
-    }
-  }
-
-  const clearApiKey = () => {
-    localStorage.removeItem('anthropic_api_key')
-    sessionStorage.removeItem('anthropic_api_key')
-    sessionStorage.removeItem('anthropic_api_key_persist')
-    setApiKey('')
-    setIsConfigured(false)
-    setPersistApiKey(false)
-    setMessages([])
-  }
-
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim() || isLoading) return
-
-    const userMessage: Message = { id: generateMessageId(), role: 'user', content: input.trim() }
-    setMessages(prev => [...prev, userMessage])
-    setInput('')
-    setIsLoading(true)
-
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-        },
-        body: JSON.stringify({
-          messages: [...messages, userMessage],
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      if (data.error) {
-        throw new Error(data.error)
-      }
-
-      const assistantMessage: Message = {
-        id: generateMessageId(),
-        role: 'assistant',
-        content: data.content,
-      }
-      setMessages(prev => [...prev, assistantMessage])
-    } catch (error) {
-      console.error('Error:', error)
-      const errorMessage: Message = {
-        id: generateMessageId(),
-        role: 'assistant',
-        content: `Error: ${error instanceof Error ? error.message : 'Failed to get response from Claude'}`,
-      }
-      setMessages(prev => [...prev, errorMessage])
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const clearChat = () => {
-    setMessages([])
-  }
-
-  if (!isConfigured) {
-    return (
-      <main className={styles.main}>
-        <div className={styles.configContainer}>
-          <h1 className={styles.title}>Claude Remote Control</h1>
-          <p className={styles.description}>
-            Enter your Anthropic API key to get started
-          </p>
-          <div className={styles.configForm}>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="sk-ant..."
-              className={styles.apiKeyInput}
-              onKeyDown={(e) => e.key === 'Enter' && saveApiKey()}
-            />
-            <button
-              onClick={saveApiKey}
-              className={styles.saveButton}
-              disabled={!apiKey.trim() || !isValidApiKey(apiKey)}
-            >
-              Save API Key
-            </button>
-          </div>
-          <label className={styles.persistCheckbox}>
-            <input
-              type="checkbox"
-              checked={persistApiKey}
-              onChange={(e) => setPersistApiKey(e.target.checked)}
-            />
-            <span>Remember API key across browser sessions (less secure)</span>
-          </label>
-          <p className={styles.note}>
-            Your API key is stored in your browser&apos;s session memory by default and will be 
-            cleared when you close your browser. It may be sent to our server only to process 
-            your chat requests, and it is not stored or persisted by us. If you enable 
-            persistent storage, your key will remain on this device until manually cleared.
-          </p>
-        </div>
-      </main>
+  // Przygotuj dane agentów z PR-ów, używając centralnej konfiguracji
+  const agents: AgentInfo[] = AGENTS.map((config) => {
+    const agentPRs = prs.filter(
+      (pr) => detectAgentFromPR(pr.head.ref, pr.user.login)?.id === config.id
     )
-  }
+    const latestPR = agentPRs[0]
+
+    return {
+      name: config.label,
+      emoji: config.emoji,
+      color: config.color,
+      borderColor: config.borderColor,
+      badgeColor: config.badgeColor,
+      status: agentPRs.length > 0 ? 'busy' : 'online',
+      lastPR: latestPR
+        ? {
+            title: latestPR.title,
+            url: latestPR.html_url,
+            state: latestPR.draft ? 'Draft' : 'Open',
+          }
+        : undefined,
+    }
+  })
 
   return (
-    <main className={styles.main}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Claude Remote Control</h1>
-        <div className={styles.controls}>
-          <button onClick={clearChat} className={styles.clearButton}>
-            Clear Chat
-          </button>
-          <button onClick={clearApiKey} className={styles.logoutButton}>
-            Change API Key
-          </button>
-        </div>
-      </div>
-
-      <div className={styles.chatContainer}>
-        <div className={styles.messages}>
-          {messages.length === 0 && (
-            <div className={styles.emptyState}>
-              <h2>Welcome to Claude Remote Control</h2>
-              <p>Start a conversation with Claude by typing a message below.</p>
-            </div>
-          )}
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`${styles.message} ${
-                message.role === 'user' ? styles.userMessage : styles.assistantMessage
-              }`}
-            >
-              <div className={styles.messageRole}>
-                {message.role === 'user' ? 'You' : 'Claude'}
-              </div>
-              <div className={styles.messageContent}>{message.content}</div>
-            </div>
-          ))}
-          {isLoading && (
-            <div className={`${styles.message} ${styles.assistantMessage}`}>
-              <div className={styles.messageRole}>Claude</div>
-              <div className={styles.messageContent}>
-                <div className={styles.loadingDots}>
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        <form onSubmit={sendMessage} className={styles.inputForm}>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            className={styles.input}
-            disabled={isLoading}
-          />
+    <div className="min-h-screen bg-gray-900 pb-24">
+      {/* Nagłówek */}
+      <header className="bg-gray-800 border-b border-gray-700 px-4 pt-[env(safe-area-inset-top)]">
+        <div className="max-w-2xl mx-auto py-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-white flex items-center gap-2">
+              🤖 <span>GeNCorE</span>
+              <span className="text-gray-400 font-normal text-sm">Command Center</span>
+            </h1>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {repoOwner}/{repoName}
+            </p>
+          </div>
           <button
-            type="submit"
-            className={styles.sendButton}
-            disabled={isLoading || !input.trim()}
+            onClick={() => fetchPRs(true)}
+            className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700 active:bg-gray-600"
+            title="Odśwież"
+            aria-label="Odśwież listę PR-ów"
           >
-            Send
+            🔄
           </button>
-        </form>
-      </div>
-    </main>
+        </div>
+      </header>
+
+      <main className="max-w-2xl mx-auto px-4 py-5 flex flex-col gap-6">
+        {/* Agenci */}
+        <section>
+          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
+            Status agentów
+          </h2>
+          <div className="grid grid-cols-1 gap-3">
+            {agents.map((agent) => (
+              <AgentCard key={agent.name} agent={agent} />
+            ))}
+          </div>
+        </section>
+
+        {/* Aktywne PR-y */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide">
+              Aktywne PR-y
+              {!loading && (
+                <span className="ml-2 text-purple-400 normal-case font-normal">
+                  ({prs.length})
+                </span>
+              )}
+            </h2>
+            {lastUpdated && (
+              <span className="text-xs text-gray-600">
+                {lastUpdated}
+              </span>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="flex flex-col gap-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="bg-gray-800 rounded-2xl h-24 animate-pulse border border-gray-700"
+                />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="bg-red-900/30 border border-red-800 rounded-2xl px-4 py-5 text-center">
+              <p className="text-red-400 text-sm mb-3">❌ {error}</p>
+              <button
+                onClick={() => fetchPRs(true)}
+                className="text-sm text-red-300 hover:text-red-200 underline"
+              >
+                Spróbuj ponownie
+              </button>
+            </div>
+          ) : prs.length === 0 ? (
+            <div className="bg-gray-800 border border-gray-700 rounded-2xl px-4 py-8 text-center">
+              <p className="text-gray-500 text-sm">✅ Brak otwartych PR-ów</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {prs.map((pr) => (
+                <PRCard key={pr.id} pr={pr} />
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+
+      <Navbar />
+    </div>
   )
 }
