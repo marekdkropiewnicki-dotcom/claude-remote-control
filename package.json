@@ -1,8 +1,11 @@
 {
   "name": "claude-remote-control",
-  "version": "1.0.0",
-  "description": "A web interface for remotely controlling and interacting with Claude AI",
+  "version": "0.1.0",
+  "description": "AI Agent Command Center — manage Copilot, Claude and Codex pull requests",
   "private": true,
+  "engines": {
+    "node": "^18.18.0 || ^19.8.0 || >= 20.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,29 +13,27 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "^15.5.15",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "@anthropic-ai/sdk": "^0.20.0"
+    "@anthropic-ai/sdk": "^0.20.0",
+    "next": "15.5.14",
+    "react": "^18",
+    "react-dom": "^18"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "typescript": "^5.0.0",
-    "eslint": "^8.0.0",
-    "eslint-config-next": "^15.0.8"
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "15.5.14",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/marekdkropiewnicki-dotcom/claude-remote-control.git"
   },
-  "keywords": [
-    "claude",
-    "ai",
-    "remote-control",
-    "anthropic"
-  ],
+  "keywords": ["claude", "ai", "remote-control", "anthropic", "github", "copilot"],
   "author": "",
   "license": "MIT",
   "bugs": {

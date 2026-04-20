@@ -1,9 +1,16 @@
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Claude Remote Control',
-  description: 'A web interface for remotely controlling and interacting with Claude AI',
+  title: 'GeNCorE — Command Center',
+  description: 'Panel sterowania agentami AI: Copilot, Claude, Codex',
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#111827',
 }
 
 export default function RootLayout({
@@ -12,8 +19,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="pl" className="dark">
+      <body className="bg-gray-900 text-white font-sans antialiased min-h-screen">
+        {children}
+      </body>
     </html>
   )
 }
