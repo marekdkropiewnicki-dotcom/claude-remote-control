@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { hashAdminToken } from '@/lib/auth'
+import { hashAdminToken, timingSafeEqual } from '@/lib/auth'
 
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 
@@ -50,7 +50,7 @@ export async function middleware(req: NextRequest) {
   const authCookie = req.cookies.get('auth')?.value
   const expectedHash = await getCachedHash()
 
-  if (authCookie !== expectedHash) {
+  if (!timingSafeEqual(authCookie ?? '', expectedHash)) {
     if (pathname.startsWith('/api')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

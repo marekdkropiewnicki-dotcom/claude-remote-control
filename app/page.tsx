@@ -15,9 +15,9 @@ export default function DashboardPage() {
   const repoOwner = process.env.NEXT_PUBLIC_REPO_OWNER || 'marekdkropiewnicki-dotcom'
   const repoName = process.env.NEXT_PUBLIC_REPO_NAME || 'GentelmeN-CorE'
 
-  const fetchPRs = async () => {
+  const fetchPRs = async (showLoading = true) => {
     try {
-      setLoading(true)
+      if (showLoading) setLoading(true)
       setError(null)
       const res = await fetch('/api/prs')
 
@@ -38,8 +38,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchPRs()
-    // Odśwież co 60 sekund
-    const interval = setInterval(fetchPRs, 60_000)
+    // Odśwież co 60 sekund (cicho, bez pokaźnika ładowania)
+    const interval = setInterval(() => fetchPRs(false), 60_000)
     return () => clearInterval(interval)
   }, [])
 
@@ -82,7 +82,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <button
-            onClick={fetchPRs}
+            onClick={() => fetchPRs(true)}
             className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-700 active:bg-gray-600"
             title="Odśwież"
             aria-label="Odśwież listę PR-ów"
@@ -136,7 +136,7 @@ export default function DashboardPage() {
             <div className="bg-red-900/30 border border-red-800 rounded-2xl px-4 py-5 text-center">
               <p className="text-red-400 text-sm mb-3">❌ {error}</p>
               <button
-                onClick={fetchPRs}
+                onClick={() => fetchPRs(true)}
                 className="text-sm text-red-300 hover:text-red-200 underline"
               >
                 Spróbuj ponownie

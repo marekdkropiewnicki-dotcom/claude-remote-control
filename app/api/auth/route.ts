@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { hashAdminToken } from '@/lib/auth'
+import { hashAdminToken, timingSafeEqual } from '@/lib/auth'
 
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN
 
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Nieprawidłowe dane JSON' }, { status: 400 })
   }
 
-  if (!body.token || body.token !== ADMIN_TOKEN) {
+  if (!body.token || !timingSafeEqual(body.token, ADMIN_TOKEN)) {
     return NextResponse.json({ error: 'Nieprawidłowy token' }, { status: 401 })
   }
 
