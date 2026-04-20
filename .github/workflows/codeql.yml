@@ -1,0 +1,45 @@
+# Custom CodeQL workflow — replaces GitHub's auto-generated "Default setup"
+# (dynamic/github-code-scanning/codeql) which was intermittently failing with
+# HTTP 429 rate limits while downloading the CodeQL action.
+#
+# IMPORTANT — manual repo setting required:
+# After merging, disable "Default setup" in repo settings to avoid duplicate
+# CodeQL runs:
+#   Settings → Code security → Code scanning → "CodeQL analysis" →
+#   Set to "Advanced" (or disable Default setup).
+# Otherwise both this workflow and the auto-generated one will run in parallel.
+
+name: CodeQL
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 3 * * 1'
+
+jobs:
+  analyze:
+    name: Analyze (JavaScript / TypeScript)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          build-mode: none
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"
