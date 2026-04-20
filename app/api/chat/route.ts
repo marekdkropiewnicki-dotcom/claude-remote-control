@@ -50,16 +50,18 @@ export async function POST(request: NextRequest) {
         )
       }
 
+      const msgObj = msg as Record<string, unknown>
+
       // Validate role
-      if ((msg as Record<string, unknown>).role !== 'user' && (msg as Record<string, unknown>).role !== 'assistant') {
+      if (msgObj.role !== 'user' && msgObj.role !== 'assistant') {
         return NextResponse.json(
-          { error: `Message at index ${i} has invalid role: ${(msg as Record<string, unknown>).role}` },
+          { error: `Message at index ${i} has invalid role: ${msgObj.role}` },
           { status: 400 }
         )
       }
 
       // Validate content exists and is a non-empty, non-whitespace string
-      const content = (msg as Record<string, unknown>).content
+      const content = msgObj.content
       if (typeof content !== 'string' || content.trim().length === 0) {
         return NextResponse.json(
           { error: `Message at index ${i} must have non-empty string content` },
